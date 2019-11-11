@@ -1,26 +1,23 @@
 # DB schema
 **スケジュール管理ツール**のDBです。
+## 今後考えること　型の定義の妥当性、正規化、null、default,外部キー
 
-### administrators
-万物へのadminがつく
+### apps
+| Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
+| ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
+| password          | int(11) | NO   | PRI | _NULL_  | auto_increment |1レコードのみ|
 
-| Field            | Type     | Null | Key | Default | Extra | 説明など |
-| ---------------- | -------- | ---- | --- | ------- | ----- | -------- |
-| admin_user_id     | varchar(32) | NO   | PRI | _NULL_  |
+### app_admin_users
+アプリ全体のadmin
+| Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
+| ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
+| user_id          | varchar(32)| PRI   | MULL | _NULL_  || userのuuid |
 
 
-### group_administrators
-
-groupidに対応したaedmin
-
-| Field            | Type     | Null | Key | Default | Extra | 説明など |
-| ---------------- | -------- | ---- | --- | ------- | ----- | -------- |
-| admin_user_id     | varchar(32) | NO   | PRI | _NULL_  |
-| group_id          | int(11) | NO   | MUL | _NULL_  || 集合の形態（弦、Vn等) |
 
 
 ### shedules
-shedulesレコードはgroup_idに対応してadminをつける。
+shedulesレコードはsmall_group_idに対応してadminをつける。
 
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -28,7 +25,7 @@ shedulesレコードはgroup_idに対応してadminをつける。
 | date       | Date  | NO   |     |  _NULL_ |  | 予定日 |
 | start_time       | Time  | YES   |     |  _NULL_ |  | 開始時刻 |
 | end_time       | Time  | YES   |     |  _NULL_ |       | 終了時刻 |
-| group_id          | int(11) | NO   | MUL | _NULL_  || 集合の形態（弦、Vn等) |
+| small_group_id          | int(11) | NO   | MUL | _NULL_  || 集合の形態（弦、Vn等) |
 | concert_id      | int(11) | YES   | MUL | _NULL_  |           | なんの本番のためか(演奏喫茶、定期演奏会等) |
 | place      | text | YES   | MUL | _NULL_  |           | 場所 |   
 | remarks      | text | YES   | MUL | _NULL_  |           | 備考 |           
@@ -55,27 +52,56 @@ sheduleの予定をさらに分割すべき時にshedule.idを外部キーとし
 | updated_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       |予定が変更された日時 |
 | deleted_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       | 予定が削除された日時 |
 
-
-### groups
+### large_groups
 
 
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
-| id          | int(11) | NO   | PRI | _NULL_  |auto_increment|groupid  |
+| id          | int(11) | NO   | PRI | _NULL_  |uuid|large_groupid |
 | name          | text | NO   | MUL | _NULL_  || グループ名 |
+| password          | text | NO   | MUL | _NULL_  || グループパスワード(グループ名に対しつけるが、同一グループがある場合、説明文を加えて選択させる) |
 | create_user_id      | varchar(32) | NO   | MUL | _NULL_  |           | 作成者のuser_id |
+| description          | text | NO   | UNI　| _NULL_  || 説明(これは最終識別手段としてuniqである必要がある。) |
+| image          | binary | YES   |  |  | |プロフィール画的な |
 | created_at          | timestamp | YES   |  | CURRENT_TIMESTAMP | | |
+| deleted_at          | timestamp | YES   |  | CURRENT_TIMESTAMP | | |
+
+### small_groups(弦、Vn、演奏喫茶等)
+
+
+| Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
+| ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
+| id          | int(11) | NO   | PRI | _NULL_  |auto_increment|small_groupid(どの団体においても0は必ず全員とする。)  |
+| name          | text | NO   | MUL | _NULL_  || グループ名 |
+| large_group_id          | int(11) | NO   | PRI | _NULL_  |uuid|large_groupid |
+| create_large_group_user_id      | varchar(32) | NO   | MUL | _NULL_  |           | 作成者のlarge_groupe_user_id |
+| created_at          | timestamp | YES   |  | CURRENT_TIMESTAMP | | |
+| deleted_at          | timestamp | YES   |  | CURRENT_TIMESTAMP | | |
 
 
 ### users
+アプリ全体で共通するuser一人一人に対し一つのuser情報
 
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | id          | int(11) | NO   | PRI | _NULL_  |auto_increment|  |
-| user_id          | varchar(32)| NO   | MULL | _NULL_  || userのuuid |
+| user_id          | varchar(32)| PRI   | MULL | _NULL_  || userのuuid |
 | name | text | NO   |     |_NULL_       |       | userの名前   |
+| password          | text| NO   | MULL | _NULL_  || userのpassword |
+
+### large_group_users
+団体の中でのuserの位置づけ
+| Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
+| ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
+| id          | varchar(32) | NO   | PRI | _NULL_  |uuid| large_group_user_id |
+| user_id          | varchar(32)| PRI   | MULL | _NULL_  || userのuuid |
+| large_grope_user_name | text | NO   |     |_NULL_       |       | userの表示名   |
 | generation          | int(11) | NO   | PRI | _NULL_  ||userの代（例：19）|
-| state          | boolean | NO   | PRI |true  ||userの状態(活動中、休団中)  |
+| state          | tinyint(4) | NO   |  |0  ||userの状態(活動中、休団中、ゲスト)  |
+| large_groupe_admin  | boolean | PRI   | MULL | false|| large_groupに対するadmin |
+
+
+
 
 ### instruments
 
@@ -118,35 +144,44 @@ musicテーブルを作ったのは同一曲名の異なる作曲者に対応す
 
 
 
-
-
-
-### user_groups
+### user_small_groups
 
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
-| user_id          | ivarchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:users.user_id** |
-| group_id          | int(11) | NO   | MUL | _NULL_  || グループのid **parents:groups.id**|
+| large_group_user_id          | ivarchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:** |
+| small_group_id          | int(11) | NO   | MUL | _NULL_  || グループのid **parents:small_groups.id**|
+| small_group_admin  | boolean | PRI   | MULL | false|| small_groupに対するadmin |
 
 
 ### user_instruments
 
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
-| user_id          | ivarchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:users.user_id** |
+| large_group_user_id          | ivarchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:large_group_users.id** |
 | instrument_id          | int(11) | NO   | MUL | _NULL_  || 楽器のid **parents:instrument.id**|
 
 
 
-### notifications
+### large_groupe_notifications
 アプリで上のほうに表示させたいお知らせ
 updated_atからある程度日がたったら表示はしないようにする。変更は作成者のみ可
 adminのみつくれる
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | id          | int(11) | NO   | PRI | _NULL_  |auto_increment|  |
-| user_id          | ivarchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:users.user_id** |
-| name | text | NO   |     |_NULL_       |       | userの名前   |
+| large_groupe_user_id          | varchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:users.user_id** |
+| name | text | NO   |     | _NULL_    |       | userの名前   |
+| created_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       | 予定が作成された日時 |
+| updated_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       |予定が変更された日時 |
+| deleted_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       | 予定が日時 |
+
+## all_notifications
+アプリ運営側からのお知らせ
+| Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
+| ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
+| id          | int(11) | NO   | PRI | _NULL_  |auto_increment|  |
+| large_groupe_user_id          | varchar(32)| NO   | MULL | _NULL_  || userのuuid**parents:users.user_id** |
+| name | text | NO   |     | _NULL_    |       | userの名前   |
 | created_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       | 予定が作成された日時 |
 | updated_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       |予定が変更された日時 |
 | deleted_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       | 予定が日時 |
@@ -162,7 +197,7 @@ adminのみつくれる
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | id          | int(11) | NO   | PRI | _NULL_  |auto_increment| concertid  |
-| group_id          | int(11) | NO   | MUL | _NULL_  || group_id  |
+| small_group_id          | int(11) | NO   | MUL | _NULL_  || small_group_id  |
 | concert_name_id          | int(11) | NO   |  | _NULL_  || コンサート名id(第n回を想定) |
 | count          | int(11) | NO   |  | _NULL_  || 第n回 |
 | date       | Date  | YES   |     |  _NULL_ |  | 日付 |
@@ -175,8 +210,9 @@ adminのみつくれる
 | deleted_at       | timestamp  | NO   |     | CURRENT_TIMESTAMP |       | 削除日時 |
 
 ### concert_names
-groupは例外的処置がめんどいのでこっちにはあえてつけなかった。
+small_groupは例外的処置がめんどいのでこっちにはあえてつけなかった。
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | id          | int(11) | NO   | PRI | _NULL_  |auto_increment| コンサート名id(第n回を想定)  |
+| large_group_id          | int(11) | NO   | PRI | _NULL_  |uuid|large_groupid |
 | concert_name   | text | NO   |  | _NULL_  || コンサート名id(第n回を想定) |
