@@ -26,7 +26,6 @@ shedulesレコードはsmall_group_idに対応してadminをつける。
 | start_time       | Time  | YES   |     |  _NULL_ |  | 開始時刻 |
 | end_time       | Time  | YES   |     |  _NULL_ |       | 終了時刻 |
 | small_group_id          | int(11) | NO   | MUL | _NULL_  || 集合の形態（弦、Vn等) |
-| concert_id      | int(11) | YES   | MUL | _NULL_  |           | なんの本番のためか(演奏喫茶、定期演奏会等) |
 | place      | text | YES   | MUL | _NULL_  |           | 場所 |   
 | remarks      | text | YES   | MUL | _NULL_  |           | 備考 |           
 | type          | int(11) | NO   | MUL | _NULL_  || 特別分けるべき行事(通常練習は0 他にリハ、本番等、打ち上げ) |
@@ -117,7 +116,7 @@ musicテーブルを作ったのは同一曲名の異なる作曲者に対応す
 | Field            | Type       | Null | Key | Default           | Extra          | 説明など                                                                                                       |
 | ---------------- | ---------- | ---- | --- | ----------------- | -------------- | -------------------------------------------------------------------------------------------------------------- |
 | id          | int(11) | NO   | PRI | _NULL_  |auto_increment|  |
-| music_id          | int(11) | NO   | PRI | _NULL_  |auto_increment|  |
+| music_id          | int(11) | NO   | PRI | _NULL_  ||  |
 | name | text | NO   |     |_NULL_       |       | 曲の名前   |
 | concert_id          | int(11) | NO   | PRI | _NULL_  || 控えている本番 |
 
